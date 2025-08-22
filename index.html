@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureChat App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #4e54c8;
+            --secondary-color: #8f94fb;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --gray-color: #6c757d;
+        }
+
+        body {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark-color);
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            background-color: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--success-color);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f5f7fb;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 12px 15px;
+            border-radius: 18px;
+            position: relative;
+            animation: messageAppear 0.3s ease;
+            line-height: 1.5;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-incoming {
+            background-color: #e9e9eb;
+            border-top-left-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .message-outgoing {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-top-right-radius: 4px;
+            align-self: flex-end;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            opacity: 0.8;
+            text-align: right;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background-color: white;
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #e6e6e6;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-btn {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .auth-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-box {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: authAppear 0.4s ease;
+        }
+
+        @keyframes authAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .auth-box h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .auth-btn {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: opacity 0.3s;
+        }
+
+        .auth-btn:hover {
+            opacity: 0.9;
+        }
+
+        .chat-info {
+            padding: 10px 20px;
+            background-color: #e9e9eb;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 10px;
+            background-color: #e9e9eb;
+            border-radius: 18px;
+            width: fit-content;
+            margin-top: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .typing-indicator.visible {
+            opacity: 1;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--gray-color);
+            border-radius: 50%;
+            animation: typingAnimation 1s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 95vh;
+                border-radius: 10px;
+            }
+            
+            .chat-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1><i class="fas fa-comments"></i> SecureChat</h1>
+            <div class="status">
+                <div class="status-dot"></div>
+                <span>Online</span>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message message-incoming">
+                <p>Hello! Welcome to SecureChat. Please authenticate to continue.</p>
+                <div class="message-time">10:00 AM</div>
+            </div>
+        </div>
+        
+        <div class="chat-info" id="chatInfo">
+            Authentication required to send messages
+        </div>
+        
+        <div class="chat-input">
+            <input type="text" class="message-input" id="messageInput" placeholder="Type your message..." disabled>
+            <button class="send-btn" id="sendBtn" disabled>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        
+        <div class="auth-container" id="authContainer">
+            <div class="auth-box">
+                <h2>Authentication Required</h2>
+                <div class="auth-form" id="authForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Enter your username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter your password">
+                    </div>
+                    <button class="auth-btn" id="loginBtn">Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const chatMessages = document.getElementById('chatMessages');
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const authContainer = document.getElementById('authContainer');
+            const loginBtn = document.getElementById('loginBtn');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const chatInfo = document.getElementById('chatInfo');
+            
+            // State variables
+            let isAuthenticated = false;
+            let messageCount = 0;
+            
+            // Predefined bot responses
+            const botResponses = [
+                "Hello! How can I assist you today?",
+                "That's interesting. Tell me more about that.",
+                "I'm here to help with any questions you might have.",
+                "I understand what you're saying.",
+                "Let me think about how best to help you with this.",
+                "I'm a chatbot, so I have limitations, but I'll do my best!",
+                "That's a great question. Let me provide some information.",
+                "I'm glad you reached out. How can I be of service?",
+                "I'm constantly learning to improve my responses.",
+                "Is there anything else you'd like to know?"
+            ];
+            
+            // Initialize the chat
+            function initChat() {
+                // Add event listeners
+                sendBtn.addEventListener('click', sendMessage);
+                messageInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+                
+                loginBtn.addEventListener('click', authenticateUser);
+                
+                // Simulate initial bot message after a delay
+                setTimeout(() => {
+                    addMessage("Hi there! I'm your virtual assistant. Please authenticate to start chatting.", 'incoming');
+                }, 1000);
+            }
+            
+            // Authenticate user
+            function authenticateUser() {
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                
+                if (!username || !password) {
+                    showError("Please enter both username and password");
+                    return;
+                }
+                
+                // Simulate authentication (in a real app, this would call an API)
+                simulateAuthentication(username, password);
+            }
+            
+            // Simulate authentication process
+            function simulateAuthentication(username, password) {
+                // Show loading state
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+                loginBtn.disabled = true;
+                
+                // Simulate API call delay
+                setTimeout(() => {
+                    // For demo purposes, any non-empty credentials will work
+                    if (username && password) {
+                        authenticationSuccess(username);
+                    } else {
+                        authenticationFailure();
+                    }
+                }, 1500);
+            }
+            
+            // Handle successful authentication
+            function authenticationSuccess(username) {
+                isAuthenticated = true;
+                
+                // Update UI
+                authContainer.style.display = 'none';
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInfo.textContent = `Authenticated as ${username}`;
+                
+                // Add welcome message
+                addMessage("Authentication successful! How can I help you today?", 'incoming');
+                
+                // Restore login button
+                loginBtn.innerHTML = 'Login';
+                loginBtn.disabled = false;
+            }
+            
+            // Handle failed authentication
+            function authenticationFailure() {
+                showError("Authentication failed. Please try again.");
+                
+                // Clear password field
+                passwordInput.value = '';
+                
+                // Restore login button
+                loginBtn.innerHTML = 'Login';
+                loginBtn.disabled = false;
+            }
+            
+            // Show error message
+            function showError(message) {
+                // Create error element
+                const errorEl = document.createElement('div');
+                errorEl.className = 'error-message';
+                errorEl.style.color = 'var(--danger-color)';
+                errorEl.style.fontSize = '0.9rem';
+                errorEl.style.marginTop = '10px';
+                errorEl.textContent = message;
+                
+                // Remove any existing error
+                const existingError = document.querySelector('.error-message');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                // Add error to form
+                authForm.appendChild(errorEl);
+                
+                // Remove error after 3 seconds
+                setTimeout(() => {
+                    errorEl.remove();
+                }, 3000);
+            }
+            
+            // Send a message
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                
+                if (!message) return;
+                
+                // Add outgoing message
+                addMessage(message, 'outgoing');
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Simulate typing indicator
+                showTypingIndicator();
+                
+                // Generate bot response after a delay
+                setTimeout(() => {
+                    // Remove typing indicator
+                    hideTypingIndicator();
+                    
+                    // Generate and add response
+                    const response = generateBotResponse();
+                    addMessage(response, 'incoming');
+                }, 1500);
+            }
+            
+            // Add message to chat
+            function addMessage(text, type) {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message message-${type}`;
+                
+                const messageText = document.createElement('p');
+                messageText.textContent = text;
+                
+                const messageTime = document.createElement('div');
+                messageTime.className = 'message-time';
+                messageTime.textContent = getCurrentTime();
+                
+                messageEl.appendChild(messageText);
+                messageEl.appendChild(messageTime);
+                
+                chatMessages.appendChild(messageEl);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                // Increment message count
+                messageCount++;
+            }
+            
+            // Show typing indicator
+            function showTypingIndicator() {
+                // Remove existing indicator if any
+                hideTypingIndicator();
+                
+                const typingEl = document.createElement('div');
+                typingEl.className = 'typing-indicator visible';
+                typingEl.id = 'typingIndicator';
+                
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    typingEl.appendChild(dot);
+                }
+                
+                chatMessages.appendChild(typingEl);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // Hide typing indicator
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // Generate bot response
+            function generateBotResponse() {
+                // Simple response algorithm - could be enhanced
+                const index = messageCount % botResponses.length;
+                return botResponses[index];
+            }
+            
+            // Get current time in HH:MM format
+            function getCurrentTime() {
+                const now = new Date();
+                return now.getHours().toString().padStart(2, '0') + ':' + 
+                       now.getMinutes().toString().padStart(2, '0');
+            }
+            
+            // Initialize the chat application
+            initChat();
+        });
+    </script>
+</body>
+</html>
