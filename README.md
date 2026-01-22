@@ -52,12 +52,7 @@ SecureChat/
 * Database connection to store messages.
 * End-to-end encryption for secure communication.
 
-## 📸 Preview
-
-* **Login Screen** – Authentication overlay.
-* **Chat Screen** – Messages, typing indicator, and bot replies.
-
 ## 👨‍💻 Author
 
-Developed by **Rakesh L N**
+Developed by Rakesh L N
 
